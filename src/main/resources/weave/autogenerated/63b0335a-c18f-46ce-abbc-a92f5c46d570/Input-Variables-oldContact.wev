@@ -1,0 +1,16 @@
+%dw 2.0
+
+type auto_63b0335a_c18f_46ce_abbc_a92f5c46d570_Input_Variables_oldContact = Array<Contact>
+type Contact = {|
+  AccountId?: String, 
+  FirstName?: String {"typeId": "FirstName"}, 
+  Id?: String {"typeId": "Id"}, 
+  IsDeleted?: Boolean {"typeId": "IsDeleted"}, 
+  LastName?: String {"typeId": "LastName"}, 
+  OtherCity?: String {"typeId": "OtherCity"}, 
+  Salutation?: ("Mr." | "Ms." | "Mrs." | "Dr." | "Prof." | "Mx.") {"typeId": "Salutation"}
+|} {"label": "Contact",
+"typeId": "Contact"}
+
+
+

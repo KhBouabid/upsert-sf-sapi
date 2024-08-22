@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="3a50afd2-4e7b-4910-819e-46c4632982d2" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="01235d8d-289d-4fd5-a871-30ff4b7eeb32" >
+		<salesforce:oauth-user-pass-connection consumerKey="3MVG9suI4ZYS8sz7.mzaDAwqqZRrrHJZoWlPWbOkpgoOXqW1h1vDTl7OeCvsYgFvg74IP0JvuCRsKE0xP_xX0" consumerSecret="AD88842FD3155050654AF6CD1A21D65458C34C3634C41AC6FC620B2451A73792" username="khalil.bouabid-zylu@force.com" password="Azerty123*" securityToken="NjkfhqPdUpBY6CkVrDCIC8BPQ"/>
+	</salesforce:sfdc-config>
+	<salesforce:sfdc-config name="Salesforce_Config2" doc:name="Salesforce Config" doc:id="dea50494-193d-43d1-9213-abd0ab1cdb36" >
+		<salesforce:oauth-user-pass-connection consumerKey="3MVG9JJwBBbcN47I61Tez9Ec9WG.fZ4NcFC74s4yNGBEz644X4UvAFJGhel8735QRn4UMpcf5Y8hw.MTMyDtq" consumerSecret="A572F3D74E69B5AD09F0E4863645F206A9815A208CCB44CDABF56D9A262ABEB4" username="khalil@niji.sandbox" password="Azerty123" securityToken="NfGCy4f6LlyqAfDaL4sMZ2fBm" tokenEndpoint="https://niji-a6-dev-ed.develop.my.salesforce.com/services/oauth2/token" />
+	</salesforce:sfdc-config>
+	<file:config name="File_Config" doc:name="File Config" doc:id="f6d0c414-53b8-4a79-a4d9-c8ae1e81405e" >
+		<file:connection workingDir="C:\Users\kbouabid\OneDrive - NIJI\Bureau\docs\in" />
+	</file:config>
+	<flow name="upsert-data-to-salesforce-apiFlow" doc:id="0c4bf87b-5b0a-4c10-b10f-2408b99ef1df" >
+		<http:listener doc:name="Listener" doc:id="d777bfff-501d-4765-8f6a-547d4e22741a" config-ref="HTTP_upsert_Listener_config" path="/query" />
+		<ee:transform doc:name="set-vars" doc:id="42e26125-9f32-4cbd-854f-91135292001c">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="mode"><![CDATA[%dw 2.0
+output application/java
+---
+"set"]]></ee:set-variable>
+				<ee:set-variable variableName="startTime"><![CDATA[%dw 2.0
+output application/java
+---
+now()]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<file:read doc:name="Read" doc:id="70bb4fe2-119a-4ae5-a4c3-262ec2a27158" config-ref="File_Config1" path="contact.csv" outputMimeType="application/json"/>
+		<ee:transform doc:name="Set New Contact" doc:id="c38c0c6a-df18-4126-af6b-a2d6174a0906" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="newContact" ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<salesforce:query doc:id="743a4f44-44dd-41ba-b2b0-fec7616899a7" config-ref="Salesforce_Config2" doc:name="Query" >
+			<salesforce:salesforce-query ><![CDATA[select Id,FirstName,LastName,IsDeleted,AccountId,Salutation,OtherCity from Contact ]]></salesforce:salesforce-query>
+		</salesforce:query>
+		<ee:transform doc:name="Set Old Contact" doc:id="04aae348-6ba9-4c67-83c7-999a93feac19" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="oldContact" ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Filter new contact records" doc:id="5324d0d0-e366-48f6-b559-ddc6d383eeda" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="contactToUpsert" ><![CDATA[%dw 2.0
+output application/csv
+---
+vars.newContact filter (newRecord) -> (vars.oldContact filter (oldRecord) -> oldRecord.Id == newRecord.Id)[0] == null
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Transform to Csv the new records" doc:id="9a630599-c065-4632-9bfd-d9cf3c0e70d8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[output application/csv
+---
+vars.contactToUpsert map ((item) -> 
+
+{
+"AccountId" : item."AccountId",
+"OtherCity" : item."OtherCity",
+"FirstName" : item."FirstName",
+"LastName" : item."LastName",
+"Salutation" : item."Salutation"
+
+}
+)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Log new contact record" doc:id="a20e500e-a30a-45f9-b13f-22f5247ffb72" message="#[payload]"/>
+		<salesforce:create-job-bulk-api-v2 objectType="Contact" operation="upsert" doc:name="Create job bulk api v " doc:id="d2d9b3ca-b915-4527-b08c-54b9bda195f5" config-ref="Salesforce_Config2" externalIdFieldName="Id" lineEnding="CRLF">
+		</salesforce:create-job-bulk-api-v2>
+		<set-variable value="#[payload.id]" doc:name="Set Job id" doc:id="4973a3d1-1b1d-4486-9c97-c77e0af2ebea" variableName="idSalesforce" />
+		<flow-ref doc:name="call-upsert-data-to-salesforce-apiSub_Flow" doc:id="143e4686-c15c-420f-968f-600031f71537" name="upsert-data-to-salesforce-apiSub_Flow"/>
+	</flow>
+	<sub-flow name="upsert-data-to-salesforce-apiSub_Flow" doc:id="63b0335a-c18f-46ce-abbc-a92f5c46d570" >
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="5b7875a6-cc9d-46e9-878e-7ce8d780748a" >
+			<try doc:name="Try" doc:id="adad4335-7b4d-4a53-ab81-674b3a304f47" >
+				<ee:transform doc:name="init report" doc:id="b827e3f8-9d5b-425b-903a-915cb8d33698">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable variableName="report"><![CDATA[%dw 2.0
+output application/json
+import * from dw::core::Strings
+var globalProcessTime= (now() - vars.startTime) default |PT0H0M1S|
+var globalProcessTimeInSeconds = (globalProcessTime.hours*3600 default 0) + (globalProcessTime.minutes*60 default 0) + (globalProcessTime.secs default 0)
+---
+{
+ //rawPayloadSize: vars.rawPayloadSize,
+ recordsCount: payload.totalRecords default 0,
+ successCount: vars.report.successCount,
+ failedCount: vars.report.failedCount,
+ distantProcessTime: substringAfter(vars.report.processTime,"T"),
+ globalProcessTime: globalProcessTimeInSeconds,
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<salesforce:get-job-state-bulk-api-v2 doc:name="Get job state bulk api v2 " doc:id="b94b89f9-2655-4559-9765-46fda2b88765" config-ref="Salesforce_Config2" id="#[vars.idSalesforce]" />
+				<ee:transform doc:name="Set response Get Job State" doc:id="5454c374-84fb-4784-abe5-d9fcd34b5498" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="state" ><![CDATA[%dw 2.0
+output application/json
+---
+payload.state]]></ee:set-variable>
+						<ee:set-variable variableName="failedRecords" ><![CDATA[%dw 2.0
+output application/json
+---
+[]]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<choice doc:name="Choice" doc:id="5a7d3e1b-960c-4588-a567-64f66a56d1c7" >
+					<when expression='#[vars.state == "JobComplete"]' >
+						<logger level="INFO" doc:name="Log state" doc:id="21fec1ac-cf58-4f34-b419-1ac54eb4273d" message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10; state: vars.state&#10;}]" />
+						<ee:transform doc:name="Transform Message" doc:id="5fcc7af5-49de-4ad7-a5cc-58ab5551440c">
+							<ee:message>
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="response" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-variable>
+								<ee:set-variable variableName="responseJob" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"failedRecords" : payload.numberRecordsFailed,
+	"successfullRecords":payload.numberRecordsProcessed
+}]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+						<salesforce:retrieve-job-failed-results-bulk-v2 doc:name="Retrieve job failed results bulk v " doc:id="2ed3a616-4d7d-4c07-b6a0-2242fd0023c1" config-ref="Salesforce_Config2" id="#[vars.idSalesforce]" target="failedRecords" />
+						<!-- [STUDIO:"Add success results to report"]<ee:transform doc:name="Add success results to report" doc:id="d4cc0b59-a610-4b0b-817e-4fbc40ca9ad7" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+{
+	successJobCount : (vars.report.successJobCount default 0) + 1,
+	failedJobCount : (vars.report.failedJobCount default 0) + 0,
+	totalJobCount : (vars.report.totalJobCount default 0) + 1,
+	
+	successCount : (vars.report.successCount default 0) + ((vars.getJobStateAnswer.numberRecordsProcessed) - (vars.getJobStateAnswer.numberRecordsFailed)),
+	failedCount : (vars.report.failedCount default 0) + (vars.getJobStateAnswer.numberRecordsFailed),
+	totalCount : (vars.report.totalCount default 0) + (vars.getJobStateAnswer.numberRecordsProcessed),
+	
+	failedError : (vars.report.failedError default [&#93;) + (vars.jobFailedAnswer default [&#93;)
+}&#93;&#93;></ee:set-payload>
+							</ee:message>
+						</ee:transform> [STUDIO] -->
+					</when>
+					<when expression='#[vars.state == "Failed"]' >
+						<logger level="INFO" doc:name="Log state" doc:id="ae6ce3ff-37d2-419c-af97-f56562ea2343" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10; state: vars.state,&#10; message: "payload received from get job state is: \n",&#10; payload: payload&#10;}]' />
+						<ee:transform doc:name="Transform Message" doc:id="b0d2c8c0-a871-431c-837a-a0d10481c16a">
+							<ee:message>
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="responseJob" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"failedRecords" : payload.numberRecordsFailed,
+	"successfullRecords":payload.numberRecordsProcessed
+}]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+						<salesforce:retrieve-job-failed-results-bulk-v2 doc:name="Retrieve job failed results bulk v " doc:id="3c829beb-7f0c-41b1-856c-5062ce9be284" config-ref="Salesforce_Config2" id="#[vars.idSalesforce]" target="failedRecords" />
+						<!-- [STUDIO:"Add failed results to report"]<ee:transform doc:name="Add failed results to report" doc:id="53467d23-493f-4b97-bce9-db51e0db0b2b" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+&#45;&#45;-
+{
+}&#93;&#93;></ee:set-payload>
+							</ee:message>
+						</ee:transform> [STUDIO] -->
+					</when>
+					<otherwise >
+						<raise-error doc:name="Raise error" doc:id="73082c46-e1e7-4aa4-a4ae-3f99cf63d911" type="ANY" description="not yet" />
+					</otherwise>
+				</choice>
+			</try>
+		</until-successful>
+		<ee:transform doc:name="Transform Message" doc:id="a53fd081-4c93-4c2e-b296-1180a7be5ac8">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"successfulRecords" :vars.responseJob.failedRecords,
+	"FailedRecords" : vars.responseJob.successfullRecords ,
+	"recordsInserted" :vars.failedRecords.originalFields
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+		<logger level="INFO" doc:name="Log result" doc:id="61e73d0b-7aa0-4ff5-ba78-8bc127fef0b0" message="#[payload]"/>
+	</sub-flow>
+</mule>

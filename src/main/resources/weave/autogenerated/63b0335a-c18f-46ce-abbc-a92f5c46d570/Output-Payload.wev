@@ -1,0 +1,28 @@
+%dw 2.0
+
+type auto_63b0335a_c18f_46ce_abbc_a92f5c46d570_Output_Payload = {|
+  apexProcessingTime?: Number, 
+  apiActiveProcessingTime?: Number, 
+  apiVersion?: String, 
+  columnDelimiter?: String, 
+  concurrencyMode?: String, 
+  contentType?: String, 
+  createdById?: String, 
+  createdDate?: String, 
+  errorMessage?: String, 
+  externalIdFieldName?: String, 
+  id?: String, 
+  jobType?: String, 
+  lineEnding?: String, 
+  numberRecordsFailed?: Number, 
+  numberRecordsProcessed?: Number, 
+  object?: String, 
+  operation?: String, 
+  retries?: Number, 
+  state?: String, 
+  systemModstamp?: String, 
+  totalProcessingTime?: Number
+|} {"typeAlias": "BulkJobState",
+"class": "org.mule.extension.salesforce.api.bulk.BulkJobState",
+"typeId": "org.mule.extension.salesforce.api.bulk.BulkJobState"}
+

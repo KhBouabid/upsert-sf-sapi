@@ -1,0 +1,21 @@
+api:
+  id: "1867316"
+
+salesforce:
+  host: "fermob360--devrcu.sandbox.my.salesforce.com"
+  port: ""
+  timeout.ms: "2000000"
+  path:
+    searchCustomer: "/services/apexrest/RCU/v1/searchCustomer/"
+    upsertCustomer: "/services/apexrest/RCU/v1/upsertCustomer"
+    getCustomer: "/services/apexrest/RCU/v1/getCustomer/"
+
+salesforce_token:
+  endpoint: "https://niji-a6-dev-ed.develop.my.salesforce.com/services/oauth2/token"
+  host: "test.salesforce.com"
+  port: "443"
+  path: "/services/oauth2/token"
+  timeout.ms: "300000"
+  tokenexpires : "30"
+  tokeninterval : "100"
+  grant_type : "password"

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd 
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+<configuration-properties doc:name="common configuration properties" doc:id="4d79af9a-02e6-4d5d-ac73-57a3da4bf43a" file="props/common-properties.yaml" />
+	<configuration-properties doc:name="env configuration properties" doc:id="266fa8e7-d2f2-4e79-9dad-5a5647a66cb1" file="props/local-properties.yaml" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="b2a89764-c562-46a0-978b-be7d97fd541f" file="props/local-secure-properties.yaml" key="${mule.key}" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	<global-property doc:name="Global Property" doc:id="6e023511-8fc6-46c9-b69e-6aa9fabf9954" name="mule.key" value="Khalil@2023!" />
+<http:listener-config name="HTTP_upsert_Listener_config" doc:name="HTTP Listener config" doc:id="4e4efed2-3999-4095-a84d-957768d748c8" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<salesforce:sfdc-config name="Salesforce_Config4" doc:name="Salesforce Config" doc:id="41c396bf-dad4-49be-8c54-fc875559260b" >
+		<salesforce:oauth-user-pass-connection consumerKey="3MVG9JJwBBbcN47I61Tez9Ec9WG.fZ4NcFC74s4yNGBEz644X4UvAFJGhel8735QRn4UMpcf5Y8hw.MTMyDtq" consumerSecret="A572F3D74E69B5AD09F0E4863645F206A9815A208CCB44CDABF56D9A262ABEB4" username="khalil@niji.sandbox" password="Azerty123" securityToken="NfGCy4f6LlyqAfDaL4sMZ2fBm" tokenEndpoint="https://niji-a6-dev-ed.develop.my.salesforce.com/services/oauth2/token" />
+	</salesforce:sfdc-config>
+	<file:config name="File_Config1" doc:name="File Config" doc:id="598c3db2-fbea-4cac-932e-94358d06a828" >
+		<file:connection workingDir="C:\Users\kbouabid\OneDrive - NIJI\Bureau\docs\in" />
+	</file:config>
+<salesforce:sfdc-config name="Salesforce_Config6" doc:name="Salesforce Config" doc:id="bdda6110-0408-46c0-be15-33fc8238e4c6" >
+		<salesforce:oauth-user-pass-connection consumerKey="${secure::salesforce_token.client_id}" consumerSecret="${secure::salesforce_token.client_secret}" username="${secure::salesforce_token.username}" password="${secure::salesforce_token.password}" tokenEndpoint="${salesforce_token.endpoint}" securityToken="${secure::salesforce_token.securityToken}"/>
+	</salesforce:sfdc-config>
+	<global-property doc:name="Global Property" doc:id="2dcb8ab0-8fef-48c9-a1e7-353d96a9e72f" name="mule.key" value="Khalil@2023!" />
+	
+</mule>

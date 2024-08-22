@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_63b0335a_c18f_46ce_abbc_a92f5c46d570_Output_Variables_newContact = Binary
+
